@@ -1,0 +1,48 @@
+# Workflow to build your docs with oranda (and mdbook)
+# and deploy them to Github Pages
+name: DeployPages
+
+# We're going to push to the gh-pages branch, so we need that permission
+permissions:
+  contents: write
+
+on:
+  pull_request:
+
+  push:
+    branches:
+      - main
+
+  workflow_run:
+    workflows: [ "Release" ]
+    types:
+      - completed
+
+# Alright, let's do it!
+jobs:
+  web:
+    name: Build and deploy site and docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install research from crates.io
+        uses: baptiste0928/cargo-install@v3
+        with:
+            crate: research
+            version: "^0.1"  # You can specify any semver range
+
+      - name: Run cargo research
+        run: cargo hack --version
+
+      - name: Deploy to Github Pages
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        # ONLY if we're on main (so no PRs or feature branches allowed!)
+        if: false && ${{ github.ref == 'refs/heads/main' }}
+        with:
+          branch: gh-pages
+          folder: .
+          token: ${{ secrets.GITHUB_TOKEN }}
+          single-commit: true
