@@ -1,22 +1,21 @@
-# Workflow to build your docs with oranda (and mdbook)
+# Workflow to build your reading-list with ResearchPocket
 # and deploy them to Github Pages
-name: DeployPages
-
-# We're going to push to the gh-pages branch, so we need that permission
-permissions:
-  contents: write
+name: Deploy Static site
 
 on:
-  pull_request:
-
   push:
-    branches:
-      - main
+    branches: [main]
 
-  workflow_run:
-    workflows: [ "Release" ]
-    types:
-      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 # Alright, let's do it!
 jobs:
@@ -24,25 +23,36 @@ jobs:
     name: Build and deploy site and docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Install research from crates.io
-        uses: baptiste0928/cargo-install@v3
-        with:
-            crate: research
-            version: "^0.1"  # You can specify any semver range
+      - name: Get latest release tag
+        id: get_release_tag
+        run: |
+          tag=$(curl -s https://api.github.com/repos/KorigamiK/ResearchPocket/releases/latest | jq -r .tag_name)
+          echo "::set-output name=tag::$tag"
 
-      - name: Run cargo research
-        run: cargo hack --version
+      - name: Download the binary
+        run: |
+          release_url='https://github.com/KorigamiK/ResearchPocket/releases/download'
+          wget "${release_url}/${{ steps.get_release_tag.outputs.tag }}/research-linux-amd64"
+          chmod +x research-linux-amd64
 
-      - name: Deploy to Github Pages
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
-        # ONLY if we're on main (so no PRs or feature branches allowed!)
-        if: false && ${{ github.ref == 'refs/heads/main' }}
+      - name: Initialize and fetch from Pocket
+        run: |
+          ./research-linux-amd64 init .
+          ./research-linux-amd64 pocket fetch
+        env:
+          POCKET_CONSUMER_KEY: ${{ secrets.POCKET_CONSUMER_KEY }}
+          POCKET_ACCESS_TOKEN: ${{ secrets.POCKET_ACCESS_TOKEN }}
+
+      - name: Generate build
+        run: ./research-linux-amd64 generate --download-tailwind ./build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          branch: gh-pages
-          folder: .
-          token: ${{ secrets.GITHUB_TOKEN }}
-          single-commit: true
+          path: build/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
