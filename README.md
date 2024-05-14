@@ -4,7 +4,7 @@
     <strong>A template repository to deploy your research pocket on github pages</strong>
   </p>
   <p>
-    <a href="https://github.com/KorigamiK/ResearchPocket">ResearchPocket</a>
+    <a href="https://github.com/ResearchPocket/ResearchPocket">ResearchPocket</a>
     |
     <a href="https://researchpocket.github.io/my-list/">Demo</a>
   </p>
@@ -12,7 +12,7 @@
 </div>
 
 
-## Getting Started
+### Getting Started
 
 As of now we only support [GetPocket](https://getpocket.com) as a source for
 your research list.
@@ -20,7 +20,7 @@ your research list.
 1. Get the `consumer_key` and `access_token` from Pocket
 
    - Create a new Pocket consumer key: https://getpocket.com/developer/apps/new
-   - Get the [ResearchPocket](https://github.com/KorigamiK/ResearchPocket) Cli
+   - Get the [ResearchPocket](https://github.com/ResearchPocket/ResearchPocket) Cli
      - Use cargo: `cargo install research`
      - Alternatively you can use the lateset GitHub releases binary for your
        platform
