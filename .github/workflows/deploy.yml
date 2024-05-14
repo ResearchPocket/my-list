@@ -28,12 +28,12 @@ jobs:
       - name: Get latest release tag
         id: get_release_tag
         run: |
-          tag=$(curl -s https://api.github.com/repos/KorigamiK/ResearchPocket/releases/latest | jq -r .tag_name)
+          tag=$(curl -s https://api.github.com/repos/ResearchPocket/ResearchPocket/releases/latest | jq -r .tag_name)
           echo "::set-output name=tag::$tag"
 
       - name: Download the binary
         run: |
-          release_url='https://github.com/KorigamiK/ResearchPocket/releases/download'
+          release_url='https://github.com/ResearchPocket/ResearchPocket/releases/download'
           wget "${release_url}/${{ steps.get_release_tag.outputs.tag }}/research-linux-amd64"
           chmod +x research-linux-amd64
 
